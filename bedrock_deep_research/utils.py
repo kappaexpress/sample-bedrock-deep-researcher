@@ -30,7 +30,8 @@ def exponential_backoff_retry(
                 except ExceptionToCheck as e:
 
                     if attempt == max_retries:
-                        logger.error(f"Execution failed after {attempt} attempts")
+                        logger.error(
+                            f"Execution failed after {attempt} attempts")
                         raise e
 
                     # Add jitter to avoid thundering herd problem
@@ -66,7 +67,8 @@ def format_web_search(search_response, max_tokens_per_source, include_raw_conten
             raw_content = source.get("raw_content", "")
             if raw_content is None:
                 raw_content = ""
-                print(f"Warning: No raw_content found for source {source['url']}")
+                logger.warning(
+                    f"Warning: No raw_content found for source {source['url']}")
             if len(raw_content) > char_limit:
                 raw_content = raw_content[:char_limit] + "... [truncated]"
             formatted_text += f"Full source content limited to {max_tokens_per_source} tokens: {raw_content}\n\n"

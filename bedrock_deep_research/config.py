@@ -1,8 +1,7 @@
 import os
 from dataclasses import dataclass, fields
-from typing import Any, List, Optional
+from typing import Any, Optional
 
-from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.runnables import RunnableConfig
 
 DEFAULT_REPORT_STRUCTURE = """The report structure should focus on breaking-down the user-provided topic:

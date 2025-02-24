@@ -1,4 +1,3 @@
-
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
@@ -34,7 +33,7 @@ class SectionSearchQueryGenerator:
     N = "generate_section_search_queries"
 
     def __call__(self, state: SectionState, config: RunnableConfig):
-        """ Generate search queries for a article section """
+        """Generate search queries for a article section"""
 
         # Get state
         section = state["section"]
@@ -44,14 +43,18 @@ class SectionSearchQueryGenerator:
         number_of_queries = configurable.number_of_queries
 
         planner_model = ChatBedrock(
-            model_id=configurable.planner_model).with_structured_output(Queries)
+            model_id=configurable.planner_model
+        ).with_structured_output(Queries)
 
         # Format system instructions
         system_instructions = query_writer_instructions.format(
-            section_topic=section.description, number_of_queries=number_of_queries)
+            section_topic=section.description, number_of_queries=number_of_queries
+        )
 
         # Generate queries
-        queries = planner_model.invoke([SystemMessage(content=system_instructions)]+[
-            HumanMessage(content="Generate search queries on the provided topic.")])
+        queries = planner_model.invoke(
+            [SystemMessage(content=system_instructions)]
+            + [HumanMessage(content="Generate search queries on the provided topic.")]
+        )
 
         return {"search_queries": queries.queries}

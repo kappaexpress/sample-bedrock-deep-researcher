@@ -62,15 +62,26 @@ class ArticleOutlineGenerator:
         report_structure = configurable.report_structure
 
         planner_model = ChatBedrock(
-            model_id=configurable.planner_model, streaming=True).with_structured_output(Outline)
+            model_id=configurable.planner_model, streaming=True
+        ).with_structured_output(Outline)
 
         # Format system instructions
         system_instructions_sections = article_planner_instructions.format(
-            topic=topic, article_organization=report_structure, context=source_str, feedback=feedback)
+            topic=topic,
+            article_organization=report_structure,
+            context=source_str,
+            feedback=feedback,
+        )
 
         # Generate sections
-        outline = planner_model.invoke([SystemMessage(content=system_instructions_sections)]+[HumanMessage(
-            content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields.")])
+        outline = planner_model.invoke(
+            [SystemMessage(content=system_instructions_sections)]
+            + [
+                HumanMessage(
+                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields."
+                )
+            ]
+        )
 
         title = outline.title
         sections = outline.sections

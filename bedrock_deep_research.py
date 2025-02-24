@@ -27,8 +27,7 @@ SUPPORTED_MODELS = {
     "Anthropic Claude 3.5 Haiku": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
     "Amazon Nova Lite": "amazon.nova-lite-v1:0",
-    "Amazon Nova Pro": "amazon.nova-pro-v1:0"
-
+    "Amazon Nova Pro": "amazon.nova-pro-v1:0",
 }
 
 logger = logging.getLogger(__name__)
@@ -38,10 +37,11 @@ nest_asyncio.apply()
 
 class Article(BaseModel):
     title: str = Field(description="Title of the article")
-    date: str = Field(description="Date of the article",
-                      default=datetime.now(pytz.UTC).strftime("%Y-%m-%d"))
-    sections: List[Section] = Field(
-        description="List of sections in the article")
+    date: str = Field(
+        description="Date of the article",
+        default=datetime.now(pytz.UTC).strftime("%Y-%m-%d"),
+    )
+    sections: List[Section] = Field(description="List of sections in the article")
 
     def render_outline(self) -> str:
         sections_content = "\n".join(
@@ -107,7 +107,9 @@ def render_initial_form():
 
         with st.form("article_form"):
             topic = st.text_area(
-                "Topic", value=DEFAULT_TOPIC, help="Enter the topic you want to write about"
+                "Topic",
+                value=DEFAULT_TOPIC,
+                help="Enter the topic you want to write about",
             )
 
             writing_guidelines = st.text_area(
@@ -117,13 +119,11 @@ def render_initial_form():
             )
 
             planner_model_name = st.selectbox(
-                "Select your Model for planning tasks",
-                SUPPORTED_MODELS.keys()
+                "Select your Model for planning tasks", SUPPORTED_MODELS.keys()
             )
 
             writer_model_name = st.selectbox(
-                "Select your Model for writing tasks",
-                SUPPORTED_MODELS.keys()
+                "Select your Model for writing tasks", SUPPORTED_MODELS.keys()
             )
 
             number_of_queries = st.number_input(
@@ -140,12 +140,12 @@ def render_initial_form():
                 value=DEFAULT_MAX_SEARCH_DEPTH,
             )
 
-            submitted = st.form_submit_button(
-                "Generate Outline", type="primary")
+            submitted = st.form_submit_button("Generate Outline", type="primary")
 
             if submitted:
                 logger.info(
-                    f"generate_article on '{topic}' following '{writing_guidelines}'")
+                    f"generate_article on '{topic}' following '{writing_guidelines}'"
+                )
 
                 # logger.info(f"Using model: {model_id}")
                 if not topic:
@@ -158,17 +158,20 @@ def render_initial_form():
                     )
                     return
 
-                config = {"configurable": {"thread_id": str(uuid.uuid4()),
-                                           "writing_guidelines": writing_guidelines,
-                                           "max_search_depth": max_search_depth,
-                                           "number_of_queries": number_of_queries,
-                                           "planner_model": SUPPORTED_MODELS.get(planner_model_name),
-                                           "writer_model": SUPPORTED_MODELS.get(writer_model_name)
-                                           }}
+                config = {
+                    "configurable": {
+                        "thread_id": str(uuid.uuid4()),
+                        "writing_guidelines": writing_guidelines,
+                        "max_search_depth": max_search_depth,
+                        "number_of_queries": number_of_queries,
+                        "planner_model": SUPPORTED_MODELS.get(planner_model_name),
+                        "writer_model": SUPPORTED_MODELS.get(writer_model_name),
+                    }
+                }
 
                 st.session_state.bedrock_deep_research = BedrockDeepResearch(
-                    config=config,
-                    tavily_api_key=os.getenv("TAVILY_API_KEY"))
+                    config=config, tavily_api_key=os.getenv("TAVILY_API_KEY")
+                )
 
                 with st.session_state.text_spinner_placeholder:
                     with st.spinner(
@@ -176,13 +179,14 @@ def render_initial_form():
                     ):
                         # response = await st.session_state.bedrock_deep_research.start(topic)
                         response = loop.run_until_complete(
-                            st.session_state.bedrock_deep_research.start(topic))
+                            st.session_state.bedrock_deep_research.start(topic)
+                        )
                         logger.info(f"Outline response: {response}")
                         state = st.session_state.bedrock_deep_research.get_state()
 
                         article = Article(
-                            title=state.values['title'],
-                            sections=state.values['sections']
+                            title=state.values["title"],
+                            sections=state.values["sections"],
                         )
                         st.session_state.article = article.render_outline()
                         st.session_state.stage = "outline_feedback"
@@ -223,7 +227,8 @@ def render_outline_feedback(article_container):
 
         with col2:
             accept_outline_pressed = st.form_submit_button(
-                "Accept Outline", type="primary")
+                "Accept Outline", type="primary"
+            )
 
             if accept_outline_pressed:
                 on_accept_outline_button_click()
@@ -270,16 +275,16 @@ def on_submit_button_click(feedback):
         with st.session_state.text_spinner_placeholder:
             with st.spinner("Please wait while your feedback is being processed"):
                 try:
-                    response = loop.run_until_complete(st.session_state.bedrock_deep_research.feedback(
-                        feedback))
+                    response = loop.run_until_complete(
+                        st.session_state.bedrock_deep_research.feedback(feedback)
+                    )
 
                     logger.info(f"Feedback response: {response}")
 
                     state = st.session_state.bedrock_deep_research.get_state()
 
                     article = Article(
-                        title=state.values['title'],
-                        sections=state.values['sections']
+                        title=state.values["title"], sections=state.values["sections"]
                     )
 
                     st.session_state.article = article.render_outline()
@@ -306,20 +311,19 @@ def on_accept_outline_button_click():
             with st.spinner("Please wait while the article is being generated..."):
                 try:
                     response = loop.run_until_complete(
-                        st.session_state.bedrock_deep_research.feedback(True))
+                        st.session_state.bedrock_deep_research.feedback(True)
+                    )
 
-                    logger.info(
-                        f"Accept outline response: {response}")
+                    logger.info(f"Accept outline response: {response}")
 
                     state = st.session_state.bedrock_deep_research.get_state()
 
                     article = Article(
-                        title=state.values['title'],
-                        sections=state.values['sections']
+                        title=state.values["title"], sections=state.values["sections"]
                     )
 
-                    st.session_state.head_image_path = state.values['head_image_path']
-                    st.session_state.article = state.values['final_report']
+                    st.session_state.head_image_path = state.values["head_image_path"]
+                    st.session_state.article = state.values["final_report"]
 
                     st.session_state.stage = "final_result"
                     st.session_state.text_error = ""
@@ -336,7 +340,7 @@ def on_accept_outline_button_click():
 
 
 def main():
-    LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
+    LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 
     logging.basicConfig(
         level=LOGLEVEL,

@@ -1,4 +1,3 @@
-
 import asyncio
 import hashlib
 import json
@@ -12,7 +11,7 @@ from tavily import AsyncTavilyClient
 logger = logging.getLogger(__name__)
 
 
-class WebSearch():
+class WebSearch:
     """
     A class to perform concurrent web searches using the Tavily API.
 
@@ -25,7 +24,12 @@ class WebSearch():
     MAX_RESULTS = 5
     SEARCH_TOPIC = "general"
 
-    def __init__(self, tavily_api_key: str, save_search_results: bool = False, output_dir: str = "search_results"):
+    def __init__(
+        self,
+        tavily_api_key: str,
+        save_search_results: bool = False,
+        output_dir: str = "search_results",
+    ):
         self.output_dir = output_dir
         self.save_search_results = save_search_results
         self.tavily_async = AsyncTavilyClient(api_key=tavily_api_key)
@@ -69,7 +73,7 @@ class WebSearch():
                     query,
                     max_results=self.MAX_RESULTS,
                     include_raw_content=True,
-                    topic=self.SEARCH_TOPIC
+                    topic=self.SEARCH_TOPIC,
                 )
             )
 
@@ -87,10 +91,10 @@ class WebSearch():
         # Collect all results
         sources_list = []
         for response in search_response:
-            sources_list.extend(response['results'])
+            sources_list.extend(response["results"])
 
         # Deduplicate by URL
-        unique_sources = {source['url']: source for source in sources_list}
+        unique_sources = {source["url"]: source for source in sources_list}
 
         return unique_sources.values()
 
@@ -108,12 +112,11 @@ class WebSearch():
 
             for docs in search_docs:
 
-                query_hash = hashlib.sha256(docs['query'].encode()).hexdigest()
+                query_hash = hashlib.sha256(docs["query"].encode()).hexdigest()
                 file_path = output_path / f"search_{query_hash}.json"
 
                 file_path.write_text(
-                    json.dumps(docs, indent=2, ensure_ascii=False),
-                    encoding='utf-8'
+                    json.dumps(docs, indent=2, ensure_ascii=False), encoding="utf-8"
                 )
         except Exception as e:
             raise IOError(f"Error saving search results: {str(e)}") from e

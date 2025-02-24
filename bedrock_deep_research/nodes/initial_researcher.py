@@ -50,17 +50,25 @@ class InitialResearcher:
         report_structure = configurable.report_structure
         number_of_queries = configurable.number_of_queries
 
-        planner_model = ChatBedrock(
-            model_id=configurable.planner_model)
+        planner_model = ChatBedrock(model_id=configurable.planner_model)
 
         structured_model = planner_model.with_structured_output(Queries)
         # Format system instructions
         system_instructions_query = article_planner_query_writer_instructions.format(
-            topic=topic, article_organization=report_structure, number_of_queries=number_of_queries)
+            topic=topic,
+            article_organization=report_structure,
+            number_of_queries=number_of_queries,
+        )
 
         # Generate queries
-        results = structured_model.invoke([SystemMessage(content=system_instructions_query)]+[HumanMessage(
-            content="Generate search queries that will help with planning the sections of the article.")])
+        results = structured_model.invoke(
+            [SystemMessage(content=system_instructions_query)]
+            + [
+                HumanMessage(
+                    content="Generate search queries that will help with planning the sections of the article."
+                )
+            ]
+        )
 
         logger.info(f"Generated queries: {results.queries}")
 
@@ -70,6 +78,7 @@ class InitialResearcher:
         search_results = await self.web_search.search(query_list)
 
         source_str = format_web_search(
-            search_results, max_tokens_per_source=1000, include_raw_content=False)
+            search_results, max_tokens_per_source=1000, include_raw_content=False
+        )
 
         return {"article_id": str(uuid.uuid4()), "source_str": source_str}

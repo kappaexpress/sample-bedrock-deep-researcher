@@ -10,23 +10,19 @@ class SearchQuery(BaseModel):
 
 class Queries(BaseModel):
     """A list of search queries"""
-    queries: List[str] = Field(
-        description="List of search queries."
-    )
+
+    queries: List[str] = Field(description="List of search queries.")
 
 
 class Source(BaseModel):
-    title: str = Field(
-        description="Title of the source."
-    )
-    url: str = Field(
-        description="URL of the source."
-    )
+    title: str = Field(description="Title of the source.")
+    url: str = Field(description="URL of the source.")
 
 
 class Section(BaseModel):
     section_number: int = Field(
-        description="Number of the section used to sort the section in the final article.")
+        description="Number of the section used to sort the section in the final article."
+    )
 
     name: str = Field(
         description="Name for this section of the report.",
@@ -37,9 +33,7 @@ class Section(BaseModel):
     research: bool = Field(
         description="Whether to perform web research for this section of the report."
     )
-    content: str = Field(
-        description="The content of the section."
-    )
+    content: str = Field(description="The content of the section.")
     sources: List[Source] = Field(
         description="List of sources for this section.", default=[]
     )
@@ -47,6 +41,7 @@ class Section(BaseModel):
 
 class Outline(BaseModel):
     """A outline of the research article"""
+
     title: str = Field(
         description="Title of the article.",
     )
@@ -59,15 +54,19 @@ class SectionFeedback(BaseModel):
 
     feedback: str = Field(description="Feedback for the section")
     section_number: int = Field(
-        description="Number of the section this feedback relates to")
+        description="Number of the section this feedback relates to"
+    )
     section_title: str = Field(
-        description="Title of the section this feedback relates to")
+        description="Title of the section this feedback relates to"
+    )
 
 
 class ArticleFeedback(BaseModel):
     """Feedback for the article"""
+
     feedbacks: List[SectionFeedback] = Field(
-        description="List of feedbacks for each section", default=[])
+        description="List of feedbacks for each section", default=[]
+    )
 
 
 class ArticleState(TypedDict):

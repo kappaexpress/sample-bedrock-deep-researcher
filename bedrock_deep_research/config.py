@@ -23,6 +23,7 @@ DEFAULT_REPORT_STRUCTURE = """The report structure should focus on breaking-down
 @dataclass(kw_only=True)
 class Configuration:
     """The configurable fields for the chatbot."""
+
     report_structure: str = DEFAULT_REPORT_STRUCTURE
     writing_guidelines: str = """
 - Strict 200 word limit

@@ -1,4 +1,3 @@
-
 import logging
 
 from langchain_aws import ChatBedrock
@@ -55,30 +54,38 @@ class CompletedSectionsFormatter:
         configurable = Configuration.from_runnable_config(config)
 
         writer_model = ChatBedrock(
-            model_id=configurable.writer_model, streaming=True).with_structured_output(ArticleFeedback)
+            model_id=configurable.writer_model, streaming=True
+        ).with_structured_output(ArticleFeedback)
 
         editor_feedback = self._generate_feedback(
-            writer_model, review_completed_sections_prompt, title, draft)
+            writer_model, review_completed_sections_prompt, title, draft
+        )
 
-        return {"report_sections_from_research": draft, "editor_feedback": editor_feedback}
+        return {
+            "report_sections_from_research": draft,
+            "editor_feedback": editor_feedback,
+        }
 
     @exponential_backoff_retry(Exception, max_retries=10)
-    def _generate_feedback(self, model: ChatBedrock, system_prompt: str, title: str, draft: str) -> ArticleFeedback:
-        """ Generate feedback for the completed sections """
+    def _generate_feedback(
+        self, model: ChatBedrock, system_prompt: str, title: str, draft: str
+    ) -> ArticleFeedback:
+        """Generate feedback for the completed sections"""
 
         # Format system instructions
-        formatted_system_prompt = system_prompt.format(
-            title=title, draft=draft)
+        formatted_system_prompt = system_prompt.format(title=title, draft=draft)
 
         response = model.invoke(
-            [SystemMessage(content=formatted_system_prompt)] + [HumanMessage(content="Generate a feedback on the draft of the article")])
+            [SystemMessage(content=formatted_system_prompt)]
+            + [HumanMessage(content="Generate a feedback on the draft of the article")]
+        )
 
         logger.info(f"Feedback on completed sections: {response}")
 
         return response
 
     def _format_sections(self, sections: list[Section]) -> str:
-        """ Format a list of sections into a string """
+        """Format a list of sections into a string"""
         formatted_str = ""
         for idx, section in enumerate(sections, 1):
             formatted_str += f"""

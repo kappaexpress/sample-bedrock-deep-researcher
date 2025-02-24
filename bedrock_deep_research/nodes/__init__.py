@@ -10,7 +10,16 @@ from .section_search_query_generator import SectionSearchQueryGenerator
 from .section_web_researcher import SectionWebResearcher
 from .section_writer import SectionWriter
 
-__all__ = [InitialResearcher, ArticleOutlineGenerator, HumanFeedbackProvider,
-           SectionSearchQueryGenerator, SectionWebResearcher, SectionWriter,
-           FinalSectionsWriter, compile_final_article,
-           initiate_final_section_writing, CompletedSectionsFormatter, ArticleHeadImageGenerator]
+__all__ = [
+    InitialResearcher,
+    ArticleOutlineGenerator,
+    HumanFeedbackProvider,
+    SectionSearchQueryGenerator,
+    SectionWebResearcher,
+    SectionWriter,
+    FinalSectionsWriter,
+    compile_final_article,
+    initiate_final_section_writing,
+    CompletedSectionsFormatter,
+    ArticleHeadImageGenerator,
+]

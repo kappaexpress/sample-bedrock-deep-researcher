@@ -1,4 +1,3 @@
-
 import logging
 
 from langchain_core.runnables import RunnableConfig
@@ -19,7 +18,7 @@ class SectionWebResearcher:
         self.web_search = web_search
 
     async def __call__(self, state: SectionState, config: RunnableConfig):
-        """ Search the web for each query, then return a list of raw sources and a formatted string of sources."""
+        """Search the web for each query, then return a list of raw sources and a formatted string of sources."""
 
         # Get state
         search_queries = state["search_queries"]
@@ -31,18 +30,22 @@ class SectionWebResearcher:
             search_results = await self.web_search.search(query_list)
 
             source_str = format_web_search(
-                search_results, max_tokens_per_source=5000, include_raw_content=False)
+                search_results, max_tokens_per_source=5000, include_raw_content=False
+            )
 
             sources = []
 
             for search_result in search_results:
-                sources.append(Source(
-                    title=search_result["title"],
-                    url=search_result["url"]
-                ))
+                sources.append(
+                    Source(title=search_result["title"], url=search_result["url"])
+                )
 
         except Exception as e:
             logger.error(f"Error searching web: {e}")
             source_str = ""
 
-        return {"source_str": source_str, "sources": sources, "search_iterations": state["search_iterations"] + 1}
+        return {
+            "source_str": source_str,
+            "sources": sources,
+            "search_iterations": state["search_iterations"] + 1,
+        }

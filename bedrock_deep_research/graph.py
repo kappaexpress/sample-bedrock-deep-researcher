@@ -15,6 +15,7 @@ from .model import (
 from .nodes import (
     ArticleHeadImageGenerator,
     ArticleOutlineGenerator,
+    CompileFinalArticle,
     CompletedSectionsFormatter,
     FinalSectionsWriter,
     HumanFeedbackProvider,
@@ -22,7 +23,6 @@ from .nodes import (
     SectionSearchQueryGenerator,
     SectionWebResearcher,
     SectionWriter,
-    compile_final_article,
     initiate_final_section_writing,
 )
 from .web_search import WebSearch
@@ -37,37 +37,48 @@ class BedrockDeepResearch:
         self.graph = self.__create_workflow()
 
     def __create_workflow(self):
+
+        # Subgraph to research and write each section
+        def _section_subgraph():
+            # Subgraph: Add nodes
+            section_builder = StateGraph(
+                SectionState, output=SectionOutputState)
+            section_builder.add_node(
+                SectionSearchQueryGenerator.N, SectionSearchQueryGenerator()
+            )
+            section_builder.add_node(
+                SectionWebResearcher.N, SectionWebResearcher(self.web_search)
+            )
+            section_builder.add_node(SectionWriter.N, SectionWriter())
+
+            # Subgraph: Add edges
+            section_builder.add_edge(START, SectionSearchQueryGenerator.N)
+            section_builder.add_edge(
+                SectionSearchQueryGenerator.N, SectionWebResearcher.N)
+            section_builder.add_edge(SectionWebResearcher.N, SectionWriter.N)
+            return section_builder.compile()
+
+        # Build the main graph
         builder = StateGraph(
             ArticleState,
             input=ArticleInputState,
             output=ArticleOutputState,
             config_schema=Configuration,
         )
-
-        # Add nodes
-        section_builder = StateGraph(SectionState, output=SectionOutputState)
-        section_builder.add_node(
-            SectionSearchQueryGenerator.N, SectionSearchQueryGenerator()
-        )
-        section_builder.add_node(
-            SectionWebResearcher.N, SectionWebResearcher(self.web_search)
-        )
-        section_builder.add_node(SectionWriter.N, SectionWriter())
-
-        # Add edges
-        section_builder.add_edge(START, SectionSearchQueryGenerator.N)
-        section_builder.add_edge(SectionSearchQueryGenerator.N, SectionWebResearcher.N)
-        section_builder.add_edge(SectionWebResearcher.N, SectionWriter.N)
-
-        builder.add_node(InitialResearcher.N, InitialResearcher(self.web_search))
+        builder.add_node(InitialResearcher.N,
+                         InitialResearcher(self.web_search))
         builder.add_node(ArticleOutlineGenerator.N, ArticleOutlineGenerator())
         builder.add_node(HumanFeedbackProvider.N, HumanFeedbackProvider())
-        builder.add_node("build_section_with_web_research", section_builder.compile())
-        builder.add_node(CompletedSectionsFormatter.N, CompletedSectionsFormatter())
+        builder.add_node("build_section_with_web_research",
+                         _section_subgraph())
+        builder.add_node(CompletedSectionsFormatter.N,
+                         CompletedSectionsFormatter())
         builder.add_node(FinalSectionsWriter.N, FinalSectionsWriter())
-        builder.add_node(ArticleHeadImageGenerator.N, ArticleHeadImageGenerator())
-        builder.add_node("compile_final_article", compile_final_article)
+        builder.add_node(ArticleHeadImageGenerator.N,
+                         ArticleHeadImageGenerator())
+        builder.add_node(CompileFinalArticle.N, CompileFinalArticle())
 
+        # Add edges
         builder.add_edge(START, InitialResearcher.N)
         builder.add_edge(InitialResearcher.N, ArticleOutlineGenerator.N)
         builder.add_edge(ArticleOutlineGenerator.N, HumanFeedbackProvider.N)
@@ -80,8 +91,8 @@ class BedrockDeepResearch:
             [FinalSectionsWriter.N],
         )
         builder.add_edge(FinalSectionsWriter.N, ArticleHeadImageGenerator.N)
-        builder.add_edge(ArticleHeadImageGenerator.N, "compile_final_article")
-        builder.add_edge("compile_final_article", END)
+        builder.add_edge(ArticleHeadImageGenerator.N, CompileFinalArticle.N)
+        builder.add_edge(CompileFinalArticle.N, END)
 
         memory = MemorySaver()
 

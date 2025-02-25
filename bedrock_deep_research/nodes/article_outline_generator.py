@@ -2,6 +2,7 @@ import logging
 
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 
 from ..config import Configuration
 from ..model import ArticleState, Outline
@@ -48,7 +49,7 @@ Here is feedback on the article structure from review (if any):
 class ArticleOutlineGenerator:
     N = "generate_article_outline"
 
-    async def __call__(self, state: ArticleState, config: Configuration):
+    async def __call__(self, state: ArticleState, config: RunnableConfig):
         logging.info("Generating report plan")
 
         topic = state["topic"]
@@ -59,8 +60,6 @@ class ArticleOutlineGenerator:
 
         logger.info(f"Using Configuration: {configurable}")
 
-        report_structure = configurable.report_structure
-
         planner_model = ChatBedrock(
             model_id=configurable.planner_model, streaming=True
         ).with_structured_output(Outline)
@@ -68,7 +67,7 @@ class ArticleOutlineGenerator:
         # Format system instructions
         system_instructions_sections = article_planner_instructions.format(
             topic=topic,
-            article_organization=report_structure,
+            article_organization=configurable.report_structure,
             context=source_str,
             feedback=feedback,
         )
@@ -83,9 +82,6 @@ class ArticleOutlineGenerator:
             ]
         )
 
-        title = outline.title
-        sections = outline.sections
+        logger.info(f"Generated sections: {outline.sections}")
 
-        logger.info(f"Generated sections: {sections}")
-
-        return {"title": title, "sections": sections}
+        return {"title": outline.title, "sections": outline.sections}

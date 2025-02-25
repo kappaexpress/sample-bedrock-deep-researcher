@@ -3,6 +3,7 @@ import uuid
 
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 
 from ..config import Configuration
 from ..model import ArticleInputState, Queries
@@ -39,7 +40,7 @@ class InitialResearcher:
     def __init__(self, web_search: WebSearch):
         self.web_search = web_search
 
-    async def __call__(self, state: ArticleInputState, config: Configuration):
+    async def __call__(self, state: ArticleInputState, config: RunnableConfig):
         logging.info("Generating report plan")
 
         topic = state["topic"]
@@ -47,17 +48,14 @@ class InitialResearcher:
         configurable = Configuration.from_runnable_config(config)
         logger.info(f"Using Configuration: {configurable}")
 
-        report_structure = configurable.report_structure
-        number_of_queries = configurable.number_of_queries
-
         planner_model = ChatBedrock(model_id=configurable.planner_model)
 
         structured_model = planner_model.with_structured_output(Queries)
         # Format system instructions
         system_instructions_query = article_planner_query_writer_instructions.format(
             topic=topic,
-            article_organization=report_structure,
-            number_of_queries=number_of_queries,
+            article_organization=configurable.report_structure,
+            number_of_queries=configurable.number_of_queries,
         )
 
         # Generate queries

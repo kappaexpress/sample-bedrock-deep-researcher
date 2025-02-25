@@ -18,14 +18,22 @@ DEFAULT_REPORT_STRUCTURE = """The report structure should focus on breaking-down
    - Aim for 1 structural element (either a list of table) that distills the main body sections
    - Provide a concise summary of the report"""
 
+DEFAULT_TOPIC = "Upload files using Amazon S3 presigned url in Python"
+
+SUPPORTED_MODELS = {
+    "Anthropic Claude 3.5 Haiku": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+    "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "Amazon Nova Lite": "amazon.nova-lite-v1:0",
+    "Amazon Nova Pro": "amazon.nova-pro-v1:0",
+}
+
 
 @dataclass(kw_only=True)
 class Configuration:
     """The configurable fields for the chatbot."""
 
     report_structure: str = DEFAULT_REPORT_STRUCTURE
-    writing_guidelines: str = """
-- Strict 200 word limit
+    writing_guidelines: str = """- Strict 200 word limit
 - Start with your most important insight in **bold**
 """
     number_of_queries: int = 2  # Number of search queries to generate per iteration
@@ -33,6 +41,7 @@ class Configuration:
     planner_model: str = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
     writer_model: str = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
     output_dir: str = "output"
+    image_model: str = "amazon.nova-canvas-v1:0"
 
     @classmethod
     def from_runnable_config(

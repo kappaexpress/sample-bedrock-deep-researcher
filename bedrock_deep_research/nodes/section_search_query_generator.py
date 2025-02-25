@@ -40,7 +40,6 @@ class SectionSearchQueryGenerator:
 
         # Get configuration
         configurable = Configuration.from_runnable_config(config)
-        number_of_queries = configurable.number_of_queries
 
         planner_model = ChatBedrock(
             model_id=configurable.planner_model
@@ -48,7 +47,7 @@ class SectionSearchQueryGenerator:
 
         # Format system instructions
         system_instructions = query_writer_instructions.format(
-            section_topic=section.description, number_of_queries=number_of_queries
+            section_topic=section.description, number_of_queries=configurable.number_of_queries
         )
 
         # Generate queries

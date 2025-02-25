@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "bedrock_deep_search"
+name = "bedrock_deep_research"
 version = "0.1.0"
-description = "Bedrock Deep Search"
-authors = ["Lorenzo Micheli <miclor@amazon.com>, Akarsha Sehwag <akshseh@amazon.de>"]
+description = "Bedrock Agentic AI Deep Researcher"
+authors = [
+    "Lorenzo Micheli <miclor@amazon.com>", 
+    "Akarsha Sehwag <akshseh@amazon.de>",
+]
 readme = "README.md"
 package-mode = false
 

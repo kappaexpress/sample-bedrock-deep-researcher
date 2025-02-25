@@ -9,6 +9,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 from PIL import Image
 
 from ..config import Configuration
@@ -55,7 +56,7 @@ def generate_image(model_id, body):
         raise ImageError(f"Image generation error. Error is {finish_reason}")
 
     logger.info(
-        "Successfully generated image with Amazon Nova Canvas  model %s", model_id
+        "Successfully generated image with Amazon Nova Canvas model %s", model_id
     )
 
     return image_bytes
@@ -83,7 +84,7 @@ You must only return the prompt string and nothing else.
 class ArticleHeadImageGenerator:
     N = "generate_head_image"
 
-    def __call__(self, state: ArticleState, config: Configuration):
+    def __call__(self, state: ArticleState, config: RunnableConfig):
         article_id = state["article_id"]
         title = state["title"]
         sections = state["completed_sections"]
@@ -91,8 +92,7 @@ class ArticleHeadImageGenerator:
             configurable = Configuration.from_runnable_config(config)
 
             planner_model = ChatBedrock(
-                model_id=configurable.planner_model, streaming=True
-            )
+                model_id=configurable.planner_model, streaming=True)
 
             system_prompt = generate_image_prompt.format(
                 title=title, outline="\n".join(f"- {s.name}" for s in sections)
@@ -109,8 +109,6 @@ class ArticleHeadImageGenerator:
 
             logger.info("Generated head image prompt: %s", prompt.content)
 
-            model_id = "amazon.nova-canvas-v1:0"
-
             body = json.dumps(
                 {
                     "taskType": "TEXT_IMAGE",
@@ -125,7 +123,8 @@ class ArticleHeadImageGenerator:
                 }
             )
 
-            image_bytes = generate_image(model_id=model_id, body=body)
+            image_bytes = generate_image(
+                model_id=configurable.image_model, body=body)
             image_path = self._save_image(
                 article_id, configurable.output_dir, image_bytes
             )
@@ -135,7 +134,8 @@ class ArticleHeadImageGenerator:
             message = err.response["Error"]["Message"]
             logger.error("A bedrock client error occurred:", message)
         except Exception as e:
-            logger.error("An error occurred during ArticleHeadImageGenerator:", e)
+            logger.error(
+                "An error occurred during ArticleHeadImageGenerator:", e)
 
     def _save_image(self, article_id, output_dir, image_bytes) -> None:
         try:
@@ -153,4 +153,5 @@ class ArticleHeadImageGenerator:
 
             return image_path
         except ImageError as err:
-            logger.error(f"Error saving the generated image results: {err.message}")
+            logger.error(
+                f"Error saving the generated image results: {err.message}")

@@ -11,18 +11,14 @@ from ..utils import exponential_backoff_retry
 logger = logging.getLogger(__name__)
 
 
-review_completed_sections_prompt = """You are an expert editor tasked to review a draft of an article.
-
-<Task>
-Review all sections of the article. Identify:
+review_completed_sections_prompt = """You are an expert editor tasked to review all the sections of the article. Focus on identifying:
 - Potential repetitions: If the same concept is repeated in different sections without adding value, then the subsequent sections should avoid the repetition.
-- Concepts or explanations which are incomplete: if a concept is not fully covered you must provide a feedback to cover the missing information
+- Concepts or explanations which are incomplete: if so, you must provide a feedback to cover the missing information
 - Explanations which are unnecessarily overcomplicated
 - Acronyms which have not been expained
 
-This review must consider the article as a whole. First you must read all sections and then perform your anaylsis. Before providing any feedback, take your time to <think>.
-Collect your feedbacks and make sure to relate a feedback to a specific section. Your feedback must be clear and coincise so that the writer can apply corrections based on your feedbacks.
-</Task>
+This review must consider the article as a whole. First you must read all sections and then perform your analysis. Before providing any feedback, take your time to <think>.
+Collect your feedbacks and make sure to relate a feedback to a specific section. Your feedback must be clear and concise so that the writer can apply corrections based on your feedbacks.
 
 <output>
 Return the list of feedbacks containing the following informations:
@@ -32,9 +28,9 @@ Return the list of feedbacks containing the following informations:
 
 If you don't have any feedback, return an empty list.
 </output>
-<Title>
-{title}
-</Title>
+
+Article Title: {title}
+
 <Sections>
 {draft}
 </Sections>
@@ -73,7 +69,8 @@ class CompletedSectionsFormatter:
         """Generate feedback for the completed sections"""
 
         # Format system instructions
-        formatted_system_prompt = system_prompt.format(title=title, draft=draft)
+        formatted_system_prompt = system_prompt.format(
+            title=title, draft=draft)
 
         response = model.invoke(
             [SystemMessage(content=formatted_system_prompt)]

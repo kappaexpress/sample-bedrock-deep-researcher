@@ -9,11 +9,9 @@ from ..model import ArticleState, Outline
 
 logger = logging.getLogger(__name__)
 
-article_planner_instructions = """You are an expert technical writer tasked to plan an article based on an input topic.
+article_planner_instructions = """You are an expert technical writer tasked to plan an article outline for a topic. Your task is to generate a title and a list of sections for the article. The sections should be well-organized with clear headings that will each be individually researched.
 
-<Task>
-Generate a title and a list of sections for the article.
-
+<Section structure>
 Each section should have the fields:
 
 - Title - Title for this section of the article.
@@ -22,28 +20,20 @@ Each section should have the fields:
 - Research - Whether to perform web research for this section of the article.
 - Content - The content of the section, which you will leave blank for now.
 
-For example, introduction and conclusion will not require research because they will distill information from other parts of the article.
-</Task>
-
-<Topic>
-The topic of the article is:
-{topic}
-</Topic>
+Introduction and conclusion will not require research because they can distill information from other parts of the article.
+</Section structure>
 
 <article organization>
-The article should follow this organization:
 {article_organization}
 </article organization>
 
 <Context>
-Here is context to use to plan the sections of the article:
+Use this context to plan the sections of the article:
 {context}
 </Context>
 
-<Feedback>
-Here is feedback on the article structure from review (if any):
 {feedback}
-</Feedback>"""
+"""
 
 
 class ArticleOutlineGenerator:
@@ -52,9 +42,9 @@ class ArticleOutlineGenerator:
     async def __call__(self, state: ArticleState, config: RunnableConfig):
         logging.info("Generating report plan")
 
-        topic = state["topic"]
-        source_str = state["source_str"]
-        feedback = state.get("feedback_on_report_plan", None)
+        feedback = state.get("feedback_on_report_plan", "")
+        if feedback:
+            feedback = f"<Feedback>\nHere is some feedback on article structure from user review:{feedback}\n</Feedback>"
 
         configurable = Configuration.from_runnable_config(config)
 
@@ -66,9 +56,8 @@ class ArticleOutlineGenerator:
 
         # Format system instructions
         system_instructions_sections = article_planner_instructions.format(
-            topic=topic,
             article_organization=configurable.report_structure,
-            context=source_str,
+            context=state["source_str"],
             feedback=feedback,
         )
 
@@ -77,7 +66,7 @@ class ArticleOutlineGenerator:
             [SystemMessage(content=system_instructions_sections)]
             + [
                 HumanMessage(
-                    content="Generate the sections of the report. Your response must include a 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields."
+                    content=f"Generate the sections for the topic '{state['topic']}'. You must include 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields."
                 )
             ]
         )

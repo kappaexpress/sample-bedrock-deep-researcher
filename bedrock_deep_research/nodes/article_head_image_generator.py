@@ -56,7 +56,7 @@ def generate_image(model_id, body):
         raise ImageError(f"Image generation error. Error is {finish_reason}")
 
     logger.info(
-        "Successfully generated image with Amazon Nova Canvas model %s", model_id
+        "Successfully generated image with model %s", model_id
     )
 
     return image_bytes

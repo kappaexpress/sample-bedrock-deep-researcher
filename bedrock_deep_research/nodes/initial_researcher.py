@@ -12,26 +12,19 @@ from ..web_search import WebSearch
 
 logger = logging.getLogger(__name__)
 
-article_planner_query_writer_instructions = """You are an expert technical writer, helping to plan an article.
+article_planner_query_writer_instructions = """You are an expert technical writer, helping to structure an article content on the topic: "{topic}"
 
-<article topic>
-{topic}
-</article topic>
-
-<article organization>
+<instructions>
 {article_organization}
-</article organization>
+</instructions>
 
-<Task>
-Your goal is to generate {number_of_queries} search queries that will help gather comprehensive information for planning the article sections.
+Your task is to generate {number_of_queries} search queries that will help gather comprehensive information for planning the article sections.
 
 The queries should:
+1. Be relevant to the topic
+2. Help satisfy the requirements specified in instructions.
 
-1. Be related to the topic of the article
-2. Help satisfy the requirements specified in the article organization
-
-Make the queries specific enough to find high-quality, relevant sources while covering the breadth needed for the article structure.
-</Task>"""
+Make the queries detailed but specific enough to find high-quality, relevant sources while covering the breadth needed for the article structure."""
 
 
 class InitialResearcher:
@@ -43,8 +36,6 @@ class InitialResearcher:
     async def __call__(self, state: ArticleInputState, config: RunnableConfig):
         logging.info("Generating report plan")
 
-        topic = state["topic"]
-
         configurable = Configuration.from_runnable_config(config)
         logger.info(f"Using Configuration: {configurable}")
 
@@ -53,7 +44,7 @@ class InitialResearcher:
         structured_model = planner_model.with_structured_output(Queries)
         # Format system instructions
         system_instructions_query = article_planner_query_writer_instructions.format(
-            topic=topic,
+            topic=state["topic"],
             article_organization=configurable.report_structure,
             number_of_queries=configurable.number_of_queries,
         )

@@ -4,19 +4,20 @@ from typing import Any, Optional
 
 from langchain_core.runnables import RunnableConfig
 
-DEFAULT_REPORT_STRUCTURE = """The report structure should focus on breaking-down the user-provided topic:
+DEFAULT_REPORT_STRUCTURE = """The article structure should focus on breaking-down the user-provided topic:
 
 1. Introduction (no research needed)
-   - Brief overview of the topic area
-
+    - Brief overview of the topic area
+    - Include any key concepts and definitions
+   
 2. Main Body Sections:
-   - Each section should focus on a sub-topic of the user-provided topic
-   - Include any key concepts and definitions
+   - Each section should focus on a sub-topic of the user-provided topic.
+   - Main body sections should have a structured flow with clear and engaging headings.
    - Provide real-world examples or case studies where applicable
+   - Aim for some structural elements (either a list or table) that distills the main body sections
 
 3. Conclusion
-   - Aim for 1 structural element (either a list of table) that distills the main body sections
-   - Provide a concise summary of the report"""
+   - Provide a concise summary of the article and key takeaways."""
 
 DEFAULT_TOPIC = "Upload files using Amazon S3 presigned url in Python"
 

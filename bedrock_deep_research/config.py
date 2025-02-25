@@ -24,6 +24,7 @@ DEFAULT_TOPIC = "Upload files using Amazon S3 presigned url in Python"
 SUPPORTED_MODELS = {
     "Anthropic Claude 3.5 Haiku": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "Anthropic Claude 3.7 Sonnet": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
     "Amazon Nova Lite": "amazon.nova-lite-v1:0",
     "Amazon Nova Pro": "amazon.nova-pro-v1:0",
 }
@@ -39,7 +40,7 @@ class Configuration:
 """
     number_of_queries: int = 2  # Number of search queries to generate per iteration
     max_search_depth: int = 2  # Maximum number of reflection + search iterations
-    planner_model: str = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+    planner_model: str = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
     writer_model: str = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
     output_dir: str = "output"
     image_model: str = "amazon.nova-canvas-v1:0"

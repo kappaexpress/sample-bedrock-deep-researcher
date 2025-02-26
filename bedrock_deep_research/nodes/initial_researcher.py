@@ -45,7 +45,6 @@ class InitialResearcher:
         topic = state["topic"]
 
         configurable = Configuration.from_runnable_config(config)
-        logger.info(f"Using Configuration: {configurable}")
 
         report_structure = configurable.report_structure
         number_of_queries = configurable.number_of_queries

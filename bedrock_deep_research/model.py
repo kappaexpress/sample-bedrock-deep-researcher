@@ -50,25 +50,6 @@ class Outline(BaseModel):
     )
 
 
-class SectionFeedback(BaseModel):
-
-    feedback: str = Field(description="Feedback for the section")
-    section_number: int = Field(
-        description="Number of the section this feedback relates to"
-    )
-    section_title: str = Field(
-        description="Title of the section this feedback relates to"
-    )
-
-
-class ArticleFeedback(BaseModel):
-    """Feedback for the article"""
-
-    feedbacks: List[SectionFeedback] = Field(
-        description="List of feedbacks for each section", default=[]
-    )
-
-
 class ArticleState(TypedDict):
     article_id: str
     topic: str
@@ -82,8 +63,6 @@ class ArticleState(TypedDict):
     feedback_on_report_plan: str
     final_report: str
     head_image_path: str
-
-    editor_feedback: ArticleFeedback
 
 
 class ArticleInputState(TypedDict):

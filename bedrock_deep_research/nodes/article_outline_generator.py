@@ -57,15 +57,12 @@ class ArticleOutlineGenerator:
 
         configurable = Configuration.from_runnable_config(config)
 
-        logger.info(f"Using Configuration: {configurable}")
-
         report_structure = configurable.report_structure
 
         planner_model = ChatBedrock(
             model_id=configurable.planner_model, streaming=True
         ).with_structured_output(Outline)
 
-        # Format system instructions
         system_instructions_sections = article_planner_instructions.format(
             topic=topic,
             article_organization=report_structure,
@@ -73,7 +70,6 @@ class ArticleOutlineGenerator:
             feedback=feedback,
         )
 
-        # Generate sections
         outline = planner_model.invoke(
             [SystemMessage(content=system_instructions_sections)]
             + [

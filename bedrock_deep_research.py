@@ -15,7 +15,6 @@ from pydantic import BaseModel, Field
 from bedrock_deep_research import BedrockDeepResearch
 from bedrock_deep_research.model import Section
 
-DEFAULT_MODEL_ID = "us.anthropic.claude-3-haiku-20240307-v1:0"
 DEFAULT_NUM_SEARCH_QUERIES = 2
 DEFAULT_MAX_SEARCH_DEPTH = 2
 DEFAULT_TOPIC = "Upload files using Amazon S3 presigned url in Python"
@@ -25,9 +24,7 @@ DEFAULT_WRITING_GUIDELINES = """- Strict 150-200 word limit
 
 SUPPORTED_MODELS = {
     "Anthropic Claude 3.5 Haiku": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
-    "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-    "Amazon Nova Lite": "amazon.nova-lite-v1:0",
-    "Amazon Nova Pro": "amazon.nova-pro-v1:0",
+    "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
 }
 
 logger = logging.getLogger(__name__)
@@ -41,7 +38,8 @@ class Article(BaseModel):
         description="Date of the article",
         default=datetime.now(pytz.UTC).strftime("%Y-%m-%d"),
     )
-    sections: List[Section] = Field(description="List of sections in the article")
+    sections: List[Section] = Field(
+        description="List of sections in the article")
 
     def render_outline(self) -> str:
         sections_content = "\n".join(
@@ -79,22 +77,11 @@ Title: {self.title}
 
 
 def reset_state():
-    if "head_image_path" not in st.session_state:
-        st.session_state.head_image_path = None
-    if "bedrock_deep_research" not in st.session_state:
-        st.session_state.bedrock_deep_research = None
-    if "stage" not in st.session_state:
-        st.session_state.stage = "initial_form"
-    if "article" not in st.session_state:
-        st.session_state.article = ""
-    if "text_error" not in st.session_state:
-        st.session_state.text_error = ""
-    if "accept_draft" not in st.session_state:
-        st.session_state.accept_draft = False
-    if "cb_handler" not in st.session_state:
-        st.session_state.cb_handler = None
-    if "task" not in st.session_state:
-        st.session_state.task = None
+    st.session_state.head_image_path = None
+    st.session_state.bedrock_deep_research = None
+    st.session_state.stage = "initial_form"
+    st.session_state.article = ""
+    st.session_state.text_error = ""
 
 
 def render_initial_form():
@@ -140,7 +127,8 @@ def render_initial_form():
                 value=DEFAULT_MAX_SEARCH_DEPTH,
             )
 
-            submitted = st.form_submit_button("Generate Outline", type="primary")
+            submitted = st.form_submit_button(
+                "Generate Outline", type="primary")
 
             if submitted:
                 logger.info(
@@ -181,7 +169,9 @@ def render_initial_form():
                         response = loop.run_until_complete(
                             st.session_state.bedrock_deep_research.start(topic)
                         )
-                        logger.info(f"Outline response: {response}")
+
+                        logger.debug(f"Outline response: {response}")
+
                         state = st.session_state.bedrock_deep_research.get_state()
 
                         article = Article(
@@ -191,9 +181,7 @@ def render_initial_form():
                         st.session_state.article = article.render_outline()
                         st.session_state.stage = "outline_feedback"
                         st.rerun()
-    # except Exception as e:
-    #     logger.error(f"An error occurred: {e}")
-    #     raise
+
     finally:
         # Clean up the event loop if it was created
         if loop and not loop.is_closed():
@@ -241,7 +229,9 @@ def render_final_result(article_container):
 
     with article_container.container():
 
-        st.image(st.session_state.head_image_path, width=1200)
+        if 'head_image_path' in st.session_state and st.session_state.head_image_path != None:
+            st.image(st.session_state.head_image_path, width=1200)
+
         st.markdown(st.session_state.article)
 
     st.divider()
@@ -276,7 +266,8 @@ def on_submit_button_click(feedback):
             with st.spinner("Please wait while your feedback is being processed"):
                 try:
                     response = loop.run_until_complete(
-                        st.session_state.bedrock_deep_research.feedback(feedback)
+                        st.session_state.bedrock_deep_research.feedback(
+                            feedback)
                     )
 
                     logger.info(f"Feedback response: {response}")
@@ -318,10 +309,6 @@ def on_accept_outline_button_click():
 
                     state = st.session_state.bedrock_deep_research.get_state()
 
-                    article = Article(
-                        title=state.values["title"], sections=state.values["sections"]
-                    )
-
                     st.session_state.head_image_path = state.values["head_image_path"]
                     st.session_state.article = state.values["final_report"]
 
@@ -349,7 +336,16 @@ def main():
     )
     load_dotenv()
 
-    reset_state()
+    if "head_image_path" not in st.session_state:
+        st.session_state.head_image_path = None
+    if "bedrock_deep_research" not in st.session_state:
+        st.session_state.bedrock_deep_research = None
+    if "stage" not in st.session_state:
+        st.session_state.stage = "initial_form"
+    if "article" not in st.session_state:
+        st.session_state.article = ""
+    if "text_error" not in st.session_state:
+        st.session_state.text_error = ""
 
     title_container = st.container()
     col1, col2 = st.columns([1, 5])
@@ -363,9 +359,6 @@ def main():
 
     st.session_state.text_spinner_placeholder = st.empty()
     article_placeholder = st.empty()
-
-    # st.session_state.cb_handler = get_streamlit_cb(
-    #     article_placeholder.container())
 
     if st.session_state.stage == "initial_form":
         render_initial_form()

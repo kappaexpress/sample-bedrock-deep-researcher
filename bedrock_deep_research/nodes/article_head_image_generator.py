@@ -87,6 +87,8 @@ class ArticleHeadImageGenerator:
         article_id = state["article_id"]
         title = state["title"]
         sections = state["completed_sections"]
+
+        image_path = None
         try:
             configurable = Configuration.from_runnable_config(config)
 
@@ -130,12 +132,14 @@ class ArticleHeadImageGenerator:
                 article_id, configurable.output_dir, image_bytes
             )
 
-            return {"head_image_path": image_path}
         except ClientError as err:
             message = err.response["Error"]["Message"]
             logger.error("A bedrock client error occurred:", message)
         except Exception as e:
-            logger.error("An error occurred during ArticleHeadImageGenerator:", e)
+            logger.error(
+                "An error occurred during ArticleHeadImageGenerator:", e)
+
+        return {"head_image_path": image_path}
 
     def _save_image(self, article_id, output_dir, image_bytes) -> None:
         try:
@@ -153,4 +157,5 @@ class ArticleHeadImageGenerator:
 
             return image_path
         except ImageError as err:
-            logger.error(f"Error saving the generated image results: {err.message}")
+            logger.error(
+                f"Error saving the generated image results: {err.message}")

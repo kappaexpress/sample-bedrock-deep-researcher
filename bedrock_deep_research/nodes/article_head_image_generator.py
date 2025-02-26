@@ -12,6 +12,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from PIL import Image
 
+from bedrock_deep_research.utils import exponential_backoff_retry
+
 from ..config import Configuration
 from ..model import ArticleState
 
@@ -25,6 +27,7 @@ class ImageError(Exception):
         self.message = message
 
 
+@exponential_backoff_retry(Exception, max_retries=5)
 def generate_image(model_id, body):
     """
     Generate an image using Amazon Nova Canvas model on demand.
@@ -89,7 +92,7 @@ class ArticleHeadImageGenerator:
         title = state["title"]
         sections = state["completed_sections"]
 
-        image_path = None
+        image_path = ""
         try:
             configurable = Configuration.from_runnable_config(config)
 
@@ -139,6 +142,7 @@ class ArticleHeadImageGenerator:
 
                 "An error occurred during ArticleHeadImageGenerator:", e)
 
+        logger.info("Generated head image: %s", image_path)
         return {"head_image_path": image_path}
 
     def _save_image(self, article_id, output_dir, image_bytes) -> None:

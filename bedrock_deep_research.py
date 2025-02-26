@@ -22,6 +22,14 @@ LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 
 nest_asyncio.apply()
 
+default_st_vals = {
+    "head_image_path": None,
+    "bedrock_deep_research": None,
+    "stage": "initial_form",
+    "article": "",
+    "text_error": ""
+}
+
 
 class Article(BaseModel):
     title: str = Field(description="Title of the article")
@@ -48,17 +56,8 @@ class Article(BaseModel):
         return f"# {self.title}\n#### Date: {self.date}\n\n{sections_content}"
 
 
-def reset_state():
-    default_st_vals = {
-        "head_image_path": None,
-        "bedrock_deep_research": None,
-        "stage": "initial_form",
-        "article": "",
-        "text_error": "",
-        "accept_draft": False,
-        "cb_handler": None,
-        "task": None,
-    }
+def init_state():
+
     for key, default_st_val in default_st_vals.items():
         if key not in st.session_state:
             st.session_state[key] = default_st_val
@@ -207,9 +206,12 @@ def render_final_result(article_container):
     Renders the final article with options to copy or start over.
     """
 
+    logger.info("render_final_result")
+    logger.info(st.session_state)
+
     with article_container.container():
 
-        if 'head_image_path' in st.session_state and st.session_state.head_image_path != None:
+        if 'head_image_path' in st.session_state and st.session_state.head_image_path:
             st.image(st.session_state.head_image_path, width=1200)
 
         st.markdown(st.session_state.article)
@@ -225,7 +227,9 @@ def render_final_result(article_container):
 
     with col2:
         if st.button("Start Over"):
-            reset_state()
+            st.session_state.bedrock_deep_research = None
+            st.session_state.stage = "initial_form"
+
             st.rerun()
 
     # Display any error messages
@@ -310,7 +314,7 @@ def on_accept_outline_button_click():
 def main():
 
     load_dotenv()
-    reset_state()
+    init_state()
 
     logging.basicConfig(
         level=LOGLEVEL,

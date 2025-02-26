@@ -1,6 +1,6 @@
 from .article_head_image_generator import ArticleHeadImageGenerator
 from .article_outline_generator import ArticleOutlineGenerator
-from .compile_final_article import compile_final_article
+from .compile_final_article import CompileFinalArticle
 from .completed_sections_formatter import CompletedSectionsFormatter
 from .final_sections_writer import FinalSectionsWriter
 from .human_feedback_provider import HumanFeedbackProvider
@@ -18,7 +18,7 @@ __all__ = [
     SectionWebResearcher,
     SectionWriter,
     FinalSectionsWriter,
-    compile_final_article,
+    CompileFinalArticle,
     initiate_final_section_writing,
     CompletedSectionsFormatter,
     ArticleHeadImageGenerator,

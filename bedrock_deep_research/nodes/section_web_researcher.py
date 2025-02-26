@@ -24,10 +24,9 @@ class SectionWebResearcher:
         search_queries = state["search_queries"]
 
         # Web search
-        query_list = search_queries
-
         try:
-            search_results = await self.web_search.search(query_list)
+            logger.debug(f"Search Queries: {search_queries}")
+            search_results = await self.web_search.search(search_queries)
 
             source_str = format_web_search(
                 search_results, max_tokens_per_source=5000, include_raw_content=False
@@ -37,7 +36,8 @@ class SectionWebResearcher:
 
             for search_result in search_results:
                 sources.append(
-                    Source(title=search_result["title"], url=search_result["url"])
+                    Source(title=search_result["title"],
+                           url=search_result["url"])
                 )
 
         except Exception as e:

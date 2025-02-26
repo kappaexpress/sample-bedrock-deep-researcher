@@ -8,7 +8,7 @@ from langgraph.types import Command
 from pydantic import BaseModel, Field
 
 from ..config import Configuration
-from ..model import SearchQuery, Section, SectionState
+from ..model import Section, SectionState
 from ..utils import exponential_backoff_retry
 from .section_web_researcher import SectionWebResearcher
 
@@ -117,7 +117,8 @@ class SectionWriter:
         configurable = Configuration.from_runnable_config(config)
         writing_guidelines = configurable.writing_guidelines
 
-        writer_model = ChatBedrock(model_id=configurable.writer_model, streaming=True)
+        writer_model = ChatBedrock(
+            model_id=configurable.writer_model, streaming=True)
 
         section.content = self._generate_section_content(
             writer_model,

@@ -75,7 +75,8 @@ class FinalSectionsWriter:
 
         configurable = Configuration.from_runnable_config(config)
 
-        writer_model = ChatBedrock(model_id=configurable.writer_model, streaming=True)
+        writer_model = ChatBedrock(
+            model_id=configurable.writer_model, streaming=True)
 
         section.content = self._generate_final_sections(
             writer_model,

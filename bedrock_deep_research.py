@@ -13,21 +13,12 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from bedrock_deep_research import BedrockDeepResearch
+from bedrock_deep_research.config import (DEFAULT_TOPIC, SUPPORTED_MODELS,
+                                          Configuration)
 from bedrock_deep_research.model import Section
 
-DEFAULT_NUM_SEARCH_QUERIES = 2
-DEFAULT_MAX_SEARCH_DEPTH = 2
-DEFAULT_TOPIC = "Upload files using Amazon S3 presigned url in Python"
-DEFAULT_WRITING_GUIDELINES = """- Strict 150-200 word limit
-- Start with your most important insight in **bold**
-"""
-
-SUPPORTED_MODELS = {
-    "Anthropic Claude 3.5 Haiku": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
-    "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-}
-
 logger = logging.getLogger(__name__)
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 
 nest_asyncio.apply()
 
@@ -45,43 +36,32 @@ class Article(BaseModel):
         sections_content = "\n".join(
             f"{i+1}. {section.name}" for i, section in enumerate(self.sections)
         )
-        return f"""
-Title: {self.title}
-
-{sections_content}
-"""
+        return f"\nTitle: {self.title}\n\n{sections_content}"
 
     def render_section(self, section: Section) -> str:
-        section_str = f"""
-## {section.name}
-
-{section.content}
-"""
-
-        return section_str
+        return f"\n## {section.name}\n\n{section.content}"
 
     def render_full_article(self) -> str:
         sections_content = "\n".join(
             self.render_section(section) for section in self.sections
         )
-
-        # references = "\n".join(
-        #     f"- {ref}" for section in self.sections for ref in section.references
-        # )
-
-        return f"""# {self.title}
-#### Date: {self.date}
-
-{sections_content}
-"""
+        return f"# {self.title}\n#### Date: {self.date}\n\n{sections_content}"
 
 
 def reset_state():
-    st.session_state.head_image_path = None
-    st.session_state.bedrock_deep_research = None
-    st.session_state.stage = "initial_form"
-    st.session_state.article = ""
-    st.session_state.text_error = ""
+    default_st_vals = {
+        "head_image_path": None,
+        "bedrock_deep_research": None,
+        "stage": "initial_form",
+        "article": "",
+        "text_error": "",
+        "accept_draft": False,
+        "cb_handler": None,
+        "task": None,
+    }
+    for key, default_st_val in default_st_vals.items():
+        if key not in st.session_state:
+            st.session_state[key] = default_st_val
 
 
 def render_initial_form():
@@ -101,7 +81,7 @@ def render_initial_form():
 
             writing_guidelines = st.text_area(
                 "Writing Guidelines",
-                value=DEFAULT_WRITING_GUIDELINES,
+                value=Configuration.writing_guidelines,
                 help="Enter any specific guidelines regarding the writing length and style",
             )
 
@@ -116,15 +96,15 @@ def render_initial_form():
             number_of_queries = st.number_input(
                 "Number of queries generated for each web search",
                 min_value=1,
-                max_value=10,
-                value=DEFAULT_NUM_SEARCH_QUERIES,
+                max_value=5,
+                value=Configuration.number_of_queries,
             )
 
             max_search_depth = st.number_input(
                 "Maximum number of reflection and web search iterations allowed for each sections",
                 min_value=1,
-                max_value=10,
-                value=DEFAULT_MAX_SEARCH_DEPTH,
+                max_value=5,
+                value=Configuration.max_search_depth,
             )
 
             submitted = st.form_submit_button(
@@ -135,7 +115,6 @@ def render_initial_form():
                     f"generate_article on '{topic}' following '{writing_guidelines}'"
                 )
 
-                # logger.info(f"Using model: {model_id}")
                 if not topic:
                     st.session_state.text_error = "Please enter a topic"
                     return
@@ -165,7 +144,6 @@ def render_initial_form():
                     with st.spinner(
                         "Please wait while the article outline is being generated..."
                     ):
-                        # response = await st.session_state.bedrock_deep_research.start(topic)
                         response = loop.run_until_complete(
                             st.session_state.bedrock_deep_research.start(topic)
                         )
@@ -181,7 +159,9 @@ def render_initial_form():
                         st.session_state.article = article.render_outline()
                         st.session_state.stage = "outline_feedback"
                         st.rerun()
-
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        raise
     finally:
         # Clean up the event loop if it was created
         if loop and not loop.is_closed():
@@ -282,7 +262,8 @@ def on_submit_button_click(feedback):
                     st.session_state.text_error = ""
                     st.rerun()
                 except Exception as e:
-                    st.error(f"An error occurred: {e}")
+                    st.error(
+                        f"An error occurred while processing feedback: {e}")
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         st.error(f"An error occurred: {e}")
@@ -327,36 +308,28 @@ def on_accept_outline_button_click():
 
 
 def main():
-    LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+
+    load_dotenv()
+    reset_state()
 
     logging.basicConfig(
         level=LOGLEVEL,
         force=True,
-        format="%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(message)s",
+        format="%(levelname)s:%(filename)s:L%(lineno)d - %(message)s",
     )
-    load_dotenv()
 
-    if "head_image_path" not in st.session_state:
-        st.session_state.head_image_path = None
-    if "bedrock_deep_research" not in st.session_state:
-        st.session_state.bedrock_deep_research = None
-    if "stage" not in st.session_state:
-        st.session_state.stage = "initial_form"
-    if "article" not in st.session_state:
-        st.session_state.article = ""
-    if "text_error" not in st.session_state:
-        st.session_state.text_error = ""
-
+    # Header
     title_container = st.container()
     col1, col2 = st.columns([1, 5])
     with title_container:
         with col1:
             st.image("static/bedrock-icon.png", width=100)
         with col2:
-            st.title("Bedrock Deep Research")
+            st.title("Bedrock Deep Researcher")
 
     st.divider()
 
+    # Main stage
     st.session_state.text_spinner_placeholder = st.empty()
     article_placeholder = st.empty()
 

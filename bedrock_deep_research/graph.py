@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class BedrockDeepResearch:
     def __init__(self, config: dict, tavily_api_key: str):
         self.config = config
-        self.web_search = WebSearch(tavily_api_key, save_search_results=True)
+        self.web_search = WebSearch(tavily_api_key, save_search_results=False)
         self.graph = self.__create_workflow()
 
     def __create_workflow(self):

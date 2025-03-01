@@ -1,5 +1,6 @@
 import logging
 import uuid
+from typing import List
 
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -7,7 +8,7 @@ from langchain_core.runnables import RunnableConfig
 
 from ..config import Configuration
 from ..model import ArticleInputState, Queries
-from ..utils import format_web_search
+from ..utils import exponential_backoff_retry, format_web_search
 from ..web_search import WebSearch
 
 logger = logging.getLogger(__name__)
@@ -34,16 +35,30 @@ class InitialResearcher:
         self.web_search = web_search
 
     async def __call__(self, state: ArticleInputState, config: RunnableConfig):
-        logging.info("Generating report plan")
+        logging.info("initial_research")
 
+        topic = state["topic"]
         configurable = Configuration.from_runnable_config(config)
 
+        query_list = self.generate_search_queries(topic, configurable)
+
+        logger.info(f"Generated queries: {query_list}")
+
+        search_results = await self.web_search.search(query_list)
+
+        source_str = format_web_search(
+            search_results, max_tokens_per_source=1000, include_raw_content=False
+        )
+
+        return {"article_id": str(uuid.uuid4()), "source_str": source_str}
+
+    def generate_search_queries(self, topic: str, configurable: Configuration) -> List[str]:
         planner_model = ChatBedrock(model_id=configurable.planner_model)
 
         structured_model = planner_model.with_structured_output(Queries)
-        # Format system instructions
+
         system_instructions_query = article_planner_query_writer_instructions.format(
-            topic=state["topic"],
+            topic=topic,
             article_organization=configurable.report_structure,
             number_of_queries=configurable.number_of_queries,
         )
@@ -58,15 +73,4 @@ class InitialResearcher:
             ]
         )
 
-        logger.info(f"Generated queries: {results.queries}")
-
-        # Web search
-        query_list = results.queries
-
-        search_results = await self.web_search.search(query_list)
-
-        source_str = format_web_search(
-            search_results, max_tokens_per_source=1000, include_raw_content=False
-        )
-
-        return {"article_id": str(uuid.uuid4()), "source_str": source_str}
+        return results.queries

@@ -27,7 +27,7 @@ class ImageError(Exception):
         self.message = message
 
 
-@exponential_backoff_retry(Exception, max_retries=5)
+@exponential_backoff_retry(Exception, max_retries=10)
 def generate_image(model_id, body):
     """
     Generate an image using Amazon Nova Canvas model on demand.

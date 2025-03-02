@@ -9,7 +9,7 @@ DEFAULT_REPORT_STRUCTURE = """The article structure should focus on breaking-dow
 1. Introduction (no research needed)
     - Brief overview of the topic area
     - Include any key concepts and definitions
-   
+
 2. Main Body Sections:
    - Each section should focus on a sub-topic of the user-provided topic.
    - Main body sections should have a structured flow with clear and engaging headings.
@@ -24,9 +24,9 @@ DEFAULT_TOPIC = "Upload files using Amazon S3 presigned url in Python"
 SUPPORTED_MODELS = {
     "Anthropic Claude 3.5 Haiku": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     "Anthropic Claude 3.5 Sonnet v2": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-    "Anthropic Claude 3.7 Sonnet": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
-    "Amazon Nova Lite": "amazon.nova-lite-v1:0",
-    "Amazon Nova Pro": "amazon.nova-pro-v1:0",
+    #     "Anthropic Claude 3.7 Sonnet": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    #     "Amazon Nova Lite": "amazon.nova-lite-v1:0",
+    #     "Amazon Nova Pro": "amazon.nova-pro-v1:0",
 }
 
 

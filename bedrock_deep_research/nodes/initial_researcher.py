@@ -52,6 +52,7 @@ class InitialResearcher:
 
         return {"article_id": str(uuid.uuid4()), "source_str": source_str}
 
+    @exponential_backoff_retry(Exception, max_retries=10)
     def generate_search_queries(self, topic: str, configurable: Configuration) -> List[str]:
         planner_model = ChatBedrock(model_id=configurable.planner_model)
 

@@ -42,33 +42,38 @@ class ArticleOutlineGenerator:
     async def __call__(self, state: ArticleState, config: RunnableConfig):
         logging.info("Generating report plan")
 
+        topic = state.get("topic", "")
+        source_str = state.get("source_str", "")
         feedback = state.get("feedback_on_report_plan", "")
         if feedback:
             feedback = f"<Feedback>\nHere is some feedback on article structure from user review:{feedback}\n</Feedback>"
 
         configurable = Configuration.from_runnable_config(config)
 
-        logger.info(f"Using Configuration: {configurable}")
-
-        planner_model = ChatBedrock(
-            model_id=configurable.planner_model, streaming=True
-        ).with_structured_output(Outline)
-
-        system_instructions_sections = article_planner_instructions.format(
-            article_organization=configurable.report_structure,
-            context=state["source_str"],
-            feedback=feedback,
-        )
-
-        outline = planner_model.invoke(
-            [SystemMessage(content=system_instructions_sections)]
-            + [
-                HumanMessage(
-                    content=f"Generate the sections for the topic '{state['topic']}'. You must include 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields."
-                )
-            ]
-        )
+        outline = self.generate_outline(
+            configurable.planner_model, article_planner_instructions, topic, configurable.report_structure, source_str, feedback)
 
         logger.info(f"Generated sections: {outline.sections}")
 
         return {"title": outline.title, "sections": outline.sections}
+
+    def generate_outline(self, model_id: str, system_prompt: str, topic, report_structure: str, source_str: str, feedback) -> Outline:
+
+        planner_model = ChatBedrock(
+            model_id=model_id, streaming=True
+        ).with_structured_output(Outline)
+
+        system_instructions_sections = system_prompt.format(
+            article_organization=report_structure,
+            context=source_str,
+            feedback=feedback,
+        )
+
+        return planner_model.invoke(
+            [SystemMessage(content=system_instructions_sections)]
+            + [
+                HumanMessage(
+                    content=f"Generate the sections for the topic '{topic}'. You must include 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields."
+                )
+            ]
+        )

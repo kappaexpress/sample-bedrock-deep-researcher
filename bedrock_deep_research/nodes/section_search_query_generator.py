@@ -57,7 +57,7 @@ class SectionSearchQueryGenerator:
 @exponential_backoff_retry(Exception, max_retries=10)
 def generate_section_queries(configurable: Configuration, section: Section) -> Queries:
     planner_model = ChatBedrock(
-        model_id=configurable.planner_model
+        model_id=configurable.planner_model, max_tokens=configurable.max_tokens
     ).with_structured_output(Queries)
 
     # Format system instructions

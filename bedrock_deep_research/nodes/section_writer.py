@@ -120,7 +120,7 @@ class SectionWriter:
 
         try:
             writer_model = ChatBedrock(
-                model_id=configurable.writer_model, streaming=True)
+                model_id=configurable.writer_model, max_tokens=configurable.max_tokens)
 
             section.content = self._generate_section_content(
                 writer_model,

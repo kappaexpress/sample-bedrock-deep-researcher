@@ -9,30 +9,41 @@ from ..model import ArticleState, Outline
 
 logger = logging.getLogger(__name__)
 
-article_planner_instructions = """You are an expert technical writer tasked to plan an article outline for a topic. Your task is to generate a title and a list of sections for the article. The sections should be well-organized with clear headings that will each be individually researched.
+system_prompt = """You are an expert technical writer tasked to plan an article outline for a topic.
 
-<Section structure>
-Each section should have the fields:
-
-- Title - Title for this section of the article.
-- Section Number - Incremental number used to sort the sections in the article
-- Description - Brief overview of the main topics covered in this section.
-- Research - Whether to perform web research for this section of the article.
-- Content - The content of the section, which you will leave blank for now.
-
-Introduction and conclusion will not require research because they can distill information from other parts of the article.
-</Section structure>
+<instructions>
+1. Create a clear, engaging title for the article
+2. Generate a list of sections for the article.
+3. Design a logical progression of sections with descriptive headings
+4. Each section should have the fields:
+    - name: Concise, descriptive section heading
+    - section_number: Sequential integer for ordering
+    - description: Brief summary of section content (2-3 sentences)
+    - research: Boolean value (true/false) indicating if web research is needed
+    - content: Empty string (to be filled later)
+5. Introduction and conclusion will not require research because they can distill information from other parts of the article.
+6. If a feedback is provided, use it to improve the outline or the title.
+7. Return the title and sections as a valid JSON object without any additional text.
+</instructions>
+"""
+user_prompt_template = """
+The topic of the article is:
+<topic>
+{topic}
+</topic>
 
 <article organization>
 {article_organization}
 </article organization>
 
-<Context>
 Use this context to plan the sections of the article:
+<Context>
 {context}
 </Context>
 
+<feedback>
 {feedback}
+</feedback>
 """
 
 
@@ -50,30 +61,30 @@ class ArticleOutlineGenerator:
 
         configurable = Configuration.from_runnable_config(config)
 
+        user_prompt = user_prompt_template.format(
+            topic=topic,
+            article_organization=configurable.report_structure,
+            context=source_str,
+            feedback=feedback,
+        )
         outline = self.generate_outline(
-            configurable.planner_model, article_planner_instructions, topic, configurable.report_structure, source_str, feedback)
+            configurable.planner_model, configurable.max_tokens, system_prompt, user_prompt)
 
         logger.info(f"Generated sections: {outline.sections}")
 
         return {"title": outline.title, "sections": outline.sections}
 
-    def generate_outline(self, model_id: str, system_prompt: str, topic, report_structure: str, source_str: str, feedback) -> Outline:
+    def generate_outline(self, model_id: str, max_tokens: int, system_prompt: str, user_prompt: str):
 
         planner_model = ChatBedrock(
-            model_id=model_id, streaming=True
-        ).with_structured_output(Outline)
-
-        system_instructions_sections = system_prompt.format(
-            article_organization=report_structure,
-            context=source_str,
-            feedback=feedback,
-        )
+            model_id=model_id, max_tokens=max_tokens)
+        # ).with_structured_output(Outline)
 
         return planner_model.invoke(
-            [SystemMessage(content=system_instructions_sections)]
+            [SystemMessage(content=system_prompt)]
             + [
                 HumanMessage(
-                    content=f"Generate the sections for the topic '{topic}'. You must include 'sections' field containing a list of sections. Each section must have: title, description, plan, research, and content fields."
+                    content=user_prompt
                 )
             ]
         )

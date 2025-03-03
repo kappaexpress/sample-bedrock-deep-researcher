@@ -97,7 +97,7 @@ class ArticleHeadImageGenerator:
             configurable = Configuration.from_runnable_config(config)
 
             planner_model = ChatBedrock(
-                model_id=configurable.planner_model, streaming=True)
+                model_id=configurable.planner_model, max_tokens=configurable.max_tokens)
 
             system_prompt = generate_image_prompt.format(
                 title=title, outline="\n".join(f"- {s.name}" for s in sections)

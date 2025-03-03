@@ -13,7 +13,7 @@ from ..web_search import WebSearch
 
 logger = logging.getLogger(__name__)
 
-article_planner_query_writer_instructions = """You are an expert technical writer, helping to structure an article content on the topic: "{topic}"
+system_prompt_template = """You are an expert technical writer, helping to structure an article content on the topic: "{topic}"
 
 <instructions>
 {article_organization}
@@ -40,7 +40,16 @@ class InitialResearcher:
         topic = state["topic"]
         configurable = Configuration.from_runnable_config(config)
 
-        query_list = self.generate_search_queries(topic, configurable)
+        system_prompt = system_prompt_template.format(
+            topic=topic,
+            article_organization=configurable.report_structure,
+            number_of_queries=configurable.number_of_queries,
+        )
+
+        user_prompt = "Generate search queries on the provided topic."
+
+        query_list = self.generate_search_queries(
+            configurable.planner_model, configurable.max_tokens, system_prompt, user_prompt)
 
         logger.info(f"Generated queries: {query_list}")
 
@@ -53,23 +62,18 @@ class InitialResearcher:
         return {"article_id": str(uuid.uuid4()), "source_str": source_str}
 
     @exponential_backoff_retry(Exception, max_retries=10)
-    def generate_search_queries(self, topic: str, configurable: Configuration) -> List[str]:
-        planner_model = ChatBedrock(model_id=configurable.planner_model)
+    def generate_search_queries(self, model_id: str, max_tokens: int, system_prompt: str, user_prompt: str) -> List[str]:
+        planner_model = ChatBedrock(
+            model_id=model_id, max_tokens=max_tokens)
 
         structured_model = planner_model.with_structured_output(Queries)
 
-        system_instructions_query = article_planner_query_writer_instructions.format(
-            topic=topic,
-            article_organization=configurable.report_structure,
-            number_of_queries=configurable.number_of_queries,
-        )
-
         # Generate queries
         results = structured_model.invoke(
-            [SystemMessage(content=system_instructions_query)]
+            [SystemMessage(content=system_prompt)]
             + [
                 HumanMessage(
-                    content="Generate search queries that will help with planning the sections of the article."
+                    content=user_prompt
                 )
             ]
         )

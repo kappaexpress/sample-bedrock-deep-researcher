@@ -23,8 +23,8 @@ class CompileFinalArticle:
 
         all_sections = f"# {title}\n"
 
-        if head_image_path:
-            all_sections += f"![AI generated image]({head_image_path})\n\n"
+        # if head_image_path:
+        #     all_sections += f"![AI generated image]({head_image_path})\n\n"
 
         # Compile final report
         all_sections += "\n\n".join(

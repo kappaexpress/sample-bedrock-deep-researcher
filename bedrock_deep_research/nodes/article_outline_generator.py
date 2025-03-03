@@ -1,3 +1,4 @@
+import json
 import logging
 
 from langchain_aws import ChatBedrock
@@ -67,8 +68,14 @@ class ArticleOutlineGenerator:
             context=source_str,
             feedback=feedback,
         )
-        outline = self.generate_outline(
+        outline_response = self.generate_outline(
             configurable.planner_model, configurable.max_tokens, system_prompt, user_prompt)
+
+        outline_obj = json.loads(outline_response.content)
+
+        logger.info(f"Outline json: {outline_obj}")
+
+        outline = Outline.model_validate(outline_obj, strict=True)
 
         logger.info(f"Generated sections: {outline.sections}")
 

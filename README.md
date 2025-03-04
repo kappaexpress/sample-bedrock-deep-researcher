@@ -62,8 +62,8 @@ Note: Current setup is assuming `us-east-1` region (as defined in `env.tmp` file
 ### 1. Installation
 ```bash
 # Clone the repository
-git clone https://github.com/aws-samples/bedrock-deep-research.git
-cd bedrock-deep-research
+git clone https://github.com/aws-samples/sample-bedrock-deep-researcher.git
+cd sample-bedrock-deep-researcher
 
 # Activate the virtual environment
 poetry shell

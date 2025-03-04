@@ -1,3 +1,4 @@
+import logging
 from typing import List, Literal
 
 from langchain_aws import ChatBedrock
@@ -11,6 +12,8 @@ from ..config import Configuration
 from ..model import Section, SectionState
 from ..utils import exponential_backoff_retry
 from .section_web_researcher import SectionWebResearcher
+
+logger = logging.getLogger(__name__)
 
 
 class Feedback(BaseModel):
@@ -103,9 +106,7 @@ class SectionWriter:
 
     N = "section_write"
 
-    def __call__(
-        self, state: SectionState, config: RunnableConfig
-    ) -> Command[Literal[END, SectionWebResearcher.N]]:
+    def __call__(self, state: SectionState, config: RunnableConfig) -> Command[Literal[END, SectionWebResearcher.N]]:
         """Write a section of the article"""
 
         # Get state
@@ -117,21 +118,26 @@ class SectionWriter:
         configurable = Configuration.from_runnable_config(config)
         writing_guidelines = configurable.writing_guidelines
 
-        writer_model = ChatBedrock(
-            model_id=configurable.writer_model, streaming=True)
+        try:
+            writer_model = ChatBedrock(
+                model_id=configurable.writer_model, max_tokens=configurable.max_tokens)
 
-        section.content = self._generate_section_content(
-            writer_model,
-            section_writer_instructions,
-            section,
-            source_str,
-            writing_guidelines,
-        )
-        section.sources = sources
+            section.content = self._generate_section_content(
+                writer_model,
+                section_writer_instructions,
+                section,
+                source_str,
+                writing_guidelines,
+            )
+            section.sources = sources
 
-        feedback = self._grade_section_content(
-            writer_model, section_grader_instructions, section
-        )
+            feedback = self._grade_section_content(
+                writer_model, section_grader_instructions, section
+            )
+
+        except Exception as e:
+            logger.error(f"Error writing section: {e}")
+            raise e
 
         if (
             feedback.grade == "pass"

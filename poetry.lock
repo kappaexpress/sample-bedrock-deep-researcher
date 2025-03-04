@@ -305,17 +305,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.36.26"
+version = "1.37.3"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.36.26-py3-none-any.whl", hash = "sha256:f67d014a7c5a3cd540606d64d7cb9eec3600cf42acab1ac0518df9751ae115e2"},
-    {file = "boto3-1.36.26.tar.gz", hash = "sha256:523b69457eee55ac15aa707c0e768b2a45ca1521f95b2442931090633ec72458"},
+    {file = "boto3-1.37.3-py3-none-any.whl", hash = "sha256:2063b40af99fd02f6228ff52397b552ff3353831edaf8d25cc04801827ab9794"},
+    {file = "boto3-1.37.3.tar.gz", hash = "sha256:21f3ce0ef111297e63a6eb998a25197b8c10982970c320d4c6e8db08be2157be"},
 ]
 
 [package.dependencies]
-botocore = ">=1.36.26,<1.37.0"
+botocore = ">=1.37.3,<1.38.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.11.0,<0.12.0"
 
@@ -324,13 +324,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.36.26"
+version = "1.37.3"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.36.26-py3-none-any.whl", hash = "sha256:4e3f19913887a58502e71ef8d696fe7eaa54de7813ff73390cd5883f837dfa6e"},
-    {file = "botocore-1.36.26.tar.gz", hash = "sha256:4a63bcef7ecf6146fd3a61dc4f9b33b7473b49bdaf1770e9aaca6eee0c9eab62"},
+    {file = "botocore-1.37.3-py3-none-any.whl", hash = "sha256:d01bd3bf4c80e61fa88d636ad9f5c9f60a551d71549b481386c6b4efe0bb2b2e"},
+    {file = "botocore-1.37.3.tar.gz", hash = "sha256:fe8403eb55a88faf9b0f9da6615e5bee7be056d75e17af66c3c8f0a3b0648da4"},
 ]
 
 [package.dependencies]
@@ -1306,17 +1306,17 @@ xai = ["langchain-xai"]
 
 [[package]]
 name = "langchain-aws"
-version = "0.2.13"
+version = "0.2.14"
 description = "An integration package connecting AWS and LangChain"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "langchain_aws-0.2.13-py3-none-any.whl", hash = "sha256:f914c046d8e92b7e721f18916b2fe3dc1a1715c2abe9f60ecd41f844942a123b"},
-    {file = "langchain_aws-0.2.13.tar.gz", hash = "sha256:2dc41928ff35f0e37cf521e976f6e87f8263b0a27cfb5007394241f56d1d6644"},
+    {file = "langchain_aws-0.2.14-py3-none-any.whl", hash = "sha256:d9ed4e9c9368364bca1860440670e4fae7cb84552c45095db2acf8ef9fe7cc7e"},
+    {file = "langchain_aws-0.2.14.tar.gz", hash = "sha256:c529ff456ea54fc7174e704741663bbe7a3b1fa2f570221acfeb96fae5bbde69"},
 ]
 
 [package.dependencies]
-boto3 = ">=1.35.74"
+boto3 = ">=1.37.0"
 langchain-core = ">=0.3.27,<0.4.0"
 numpy = {version = ">=1.26.0,<3", markers = "python_version >= \"3.12\""}
 pydantic = ">=2,<3"
@@ -3945,4 +3945,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "39ab57a70a4927d535a67980799d3772818e3f72056d26296fc92a3a642855be"
+content-hash = "dc0c694c51b2e13f7bdbd236ede481870887a51c354739336041f9a581ddf4e0"

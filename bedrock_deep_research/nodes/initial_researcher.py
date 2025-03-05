@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from typing import List
@@ -34,7 +35,7 @@ class InitialResearcher:
     def __init__(self, web_search: WebSearch):
         self.web_search = web_search
 
-    async def __call__(self, state: ArticleInputState, config: RunnableConfig):
+    def __call__(self, state: ArticleInputState, config: RunnableConfig):
         logging.info("initial_research")
 
         topic = state["topic"]
@@ -53,7 +54,7 @@ class InitialResearcher:
 
         logger.info(f"Generated queries: {query_list}")
 
-        search_results = await self.web_search.search(query_list)
+        search_results = asyncio.run(self.web_search.search(query_list))
 
         source_str = format_web_search(
             search_results, max_tokens_per_source=1000, include_raw_content=False

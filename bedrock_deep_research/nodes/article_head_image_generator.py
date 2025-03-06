@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import logging
+import time
 from pathlib import Path
 
 import boto3
@@ -88,9 +89,11 @@ class ArticleHeadImageGenerator:
     N = "generate_head_image"
 
     def __call__(self, state: ArticleState, config: RunnableConfig):
-        article_id = state["article_id"]
         title = state["title"]
         sections = state["completed_sections"]
+
+        article_id = ("_".join(title.split(" ")) +
+                      "_" + hex(int(time.time()))[2:])[:64]
 
         image_path = ""
         try:

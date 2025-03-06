@@ -60,7 +60,6 @@ class Outline(BaseModel):
 
 
 class ArticleState(TypedDict):
-    article_id: str
     topic: str
     title: str
     sections: list[Section]

@@ -1,5 +1,4 @@
 import logging
-import time
 from typing import List
 
 from langchain_aws import ChatBedrock
@@ -58,10 +57,8 @@ class InitialResearcher:
         source_str = format_web_search(
             search_results, max_tokens_per_source=1000, include_raw_content=False
         )
-        article_id = "_".join(topic.split(" ")) + \
-            "_" + hex(int(time.time()))[2:]
 
-        return {"article_id": article_id, "source_str": source_str}
+        return {"source_str": source_str}
 
     @exponential_backoff_retry(Exception, max_retries=10)
     def generate_search_queries(self, model_id: str, max_tokens: int, system_prompt: str, user_prompt: str) -> List[str]:

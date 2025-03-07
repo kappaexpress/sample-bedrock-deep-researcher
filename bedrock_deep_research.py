@@ -1,11 +1,9 @@
-import asyncio
 import logging
 import os
 import uuid
 from datetime import datetime
 from typing import List
 
-import nest_asyncio
 import pyperclip
 import pytz
 import streamlit as st
@@ -19,7 +17,6 @@ from bedrock_deep_research.model import Section
 logger = logging.getLogger(__name__)
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 
-nest_asyncio.apply()
 
 default_st_vals = {
     "head_image_path": None,
@@ -76,10 +73,7 @@ def render_initial_form():
     """
     Renders the initial form for article generation with topic and writing_guidelines inputs.
     """
-    loop = None
     try:
-        loop = asyncio.get_event_loop()
-
         with st.form("article_form"):
             topic = st.text_area(
                 "Topic",
@@ -152,9 +146,8 @@ def render_initial_form():
                     with st.spinner(
                         "Please wait while the article outline is being generated..."
                     ):
-                        response = loop.run_until_complete(
-                            st.session_state.bedrock_deep_research.start(topic)
-                        )
+                        response = st.session_state.bedrock_deep_research.start(
+                            topic)
 
                         logger.debug(f"Outline response: {response}")
 
@@ -170,10 +163,6 @@ def render_initial_form():
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         raise
-    finally:
-        # Clean up the event loop if it was created
-        if loop and not loop.is_closed():
-            loop.close()
 
 
 def render_outline_feedback(article_container):
@@ -246,9 +235,7 @@ def render_final_result(article_container):
 
 
 def on_submit_button_click(feedback):
-    loop = None
     try:
-        loop = asyncio.get_event_loop()
         logger.info("Submit feedback pressed")
         if not feedback:
             st.session_state.text_error = "Please enter a feedback"
@@ -257,10 +244,8 @@ def on_submit_button_click(feedback):
         with st.session_state.text_spinner_placeholder:
             with st.spinner("Please wait while your feedback is being processed"):
                 try:
-                    response = loop.run_until_complete(
-                        st.session_state.bedrock_deep_research.feedback(
-                            feedback)
-                    )
+                    response = st.session_state.bedrock_deep_research.feedback(
+                        feedback)
 
                     logger.info(f"Feedback response: {response}")
 
@@ -279,24 +264,18 @@ def on_submit_button_click(feedback):
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         st.error(f"An error occurred: {e}")
-    finally:
-        if loop and not loop.is_closed():
-            loop.close()
 
 
 def on_accept_outline_button_click():
     logger.info("Accept outline pressed")
 
-    loop = None
     try:
-        loop = asyncio.get_event_loop()
         # if st.form_submit_button("Accept Outline", type="primary"):
         with st.session_state.text_spinner_placeholder:
             with st.spinner("Please wait while the article is being generated..."):
                 try:
-                    response = loop.run_until_complete(
-                        st.session_state.bedrock_deep_research.feedback(True)
-                    )
+                    response = st.session_state.bedrock_deep_research.feedback(
+                        True)
 
                     logger.info(f"Accept outline response: {response}")
 
@@ -314,9 +293,6 @@ def on_accept_outline_button_click():
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         st.error(f"An error occurred: {e}")
-    finally:
-        if loop and not loop.is_closed():
-            loop.close()
 
 
 def main():

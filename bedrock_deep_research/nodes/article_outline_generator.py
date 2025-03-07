@@ -47,7 +47,7 @@ Use this context to plan the sections of the article:
 class ArticleOutlineGenerator:
     N = "generate_article_outline"
 
-    async def __call__(self, state: ArticleState, config: RunnableConfig):
+    def __call__(self, state: ArticleState, config: RunnableConfig):
         logging.info("Generating report plan")
 
         topic = state.get("topic", "")

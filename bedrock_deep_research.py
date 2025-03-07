@@ -13,8 +13,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from bedrock_deep_research import BedrockDeepResearch
-from bedrock_deep_research.config import (DEFAULT_TOPIC, SUPPORTED_MODELS,
-                                          Configuration)
+from bedrock_deep_research.config import DEFAULT_TOPIC, SUPPORTED_MODELS, Configuration
 from bedrock_deep_research.model import Section
 
 logger = logging.getLogger(__name__)
@@ -27,33 +26,43 @@ default_st_vals = {
     "bedrock_deep_research": None,
     "stage": "initial_form",
     "article": "",
-    "text_error": ""
+    "text_error": "",
 }
 
 
 class Article(BaseModel):
     title: str = Field(description="Title of the article")
-    date: str = Field(
-        description="Date of the article",
-        default=datetime.now(pytz.UTC).strftime("%Y-%m-%d"),
-    )
     sections: List[Section] = Field(
         description="List of sections in the article")
 
     def render_outline(self) -> str:
+        """Render the article outline."""
         sections_content = "\n".join(
-            f"{i+1}. {section.name}" for i, section in enumerate(self.sections)
+            f"{i + 1}. {section.name}" for i, section in enumerate(self.sections)
         )
-        return f"\nTitle: {self.title}\n\n{sections_content}"
+        return f"\nTitle: **{self.title}**\n\n{sections_content}"
 
     def render_section(self, section: Section) -> str:
+        """Render a single section."""
         return f"\n## {section.name}\n\n{section.content}"
 
     def render_full_article(self) -> str:
+        """Render the full article with all sections."""
         sections_content = "\n".join(
             self.render_section(section) for section in self.sections
         )
-        return f"# {self.title}\n#### Date: {self.date}\n\n{sections_content}"
+        return (
+            f"# {self.title}\n#### Date: {self._get_date_today()}\n\n{sections_content}"
+        )
+
+    @staticmethod
+    def _get_date_today() -> str:
+        """Get today's date in UTC."""
+        return datetime.now(pytz.UTC).strftime("%Y-%m-%d")
+
+    def __str__(self) -> str:
+        """String representation of the article."""
+        return self.render_outline()
 
 
 def init_state():
@@ -210,8 +219,7 @@ def render_final_result(article_container):
     logger.info(st.session_state)
 
     with article_container.container():
-
-        if 'head_image_path' in st.session_state and st.session_state.head_image_path:
+        if "head_image_path" in st.session_state and st.session_state.head_image_path:
             st.image(st.session_state.head_image_path, width=1200)
 
         st.markdown(st.session_state.article)

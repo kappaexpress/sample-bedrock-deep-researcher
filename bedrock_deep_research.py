@@ -36,9 +36,9 @@ class Article(BaseModel):
     def render_outline(self) -> str:
         """Render the article outline."""
         sections_content = "\n".join(
-            f"{i + 1}. {section.name}" for i, section in enumerate(self.sections)
+            f"**{i + 1}. {section.name}**\n\n{section.description}\n" for i, section in enumerate(self.sections)
         )
-        return f"\nTitle: **{self.title}**\n\n{sections_content}"
+        return f"### {self.title}\n\n{sections_content}"
 
     def render_section(self, section: Section) -> str:
         """Render a single section."""

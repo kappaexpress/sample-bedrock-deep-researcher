@@ -66,7 +66,7 @@ git clone https://github.com/aws-samples/sample-bedrock-deep-researcher.git
 cd sample-bedrock-deep-researcher
 
 # Activate the virtual environment
-poetry shell
+poetry env activate
 
 # Install dependencies using Poetry
 poetry install
@@ -87,7 +87,7 @@ cp env.tmp .env
 
 - Start the Streamlit application:
 ```bash
-streamlit run bedrock_deep_research.py
+poetry run python -m streamlit run bedrock_deep_research.py
 ```
 
 ## Using the Application

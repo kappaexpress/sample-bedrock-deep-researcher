@@ -1,10 +1,10 @@
 {
-  // コンテナ設定に名前を付けます
   "name": "bedrock-test",
   "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
-
-  // 追加する機能 (features) を指定します。
   "features": {
-    "ghcr.io/devcontainers-extra/features/poetry:2": {}
+    // poetry
+    "ghcr.io/devcontainers-extra/features/poetry:2": {},
+    // aws-cli
+    "ghcr.io/devcontainers/features/aws-cli:1.1.1": {}
   }
 }

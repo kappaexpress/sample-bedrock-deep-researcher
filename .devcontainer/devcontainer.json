@@ -5,6 +5,6 @@
 
   // 追加する機能 (features) を指定します。
   "features": {
-    "ghcr.io/devcontainers-extra/features/poetry:2": {}
+    "ghcr.io/nikobockerman/devcontainer-features/poetry-persistent-cache:1": {}
   }
 }
